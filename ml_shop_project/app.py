@@ -134,6 +134,42 @@ elif page == "📊 Аналитика & Облако слов":
             st.subheader("Соотношение тональности отзывов")
             sentiment_counts = df["sentiment"].map({1: "Позитивные 😊", 0: "Негативные 😔"}).value_counts()
             st.dataframe(sentiment_counts, use_container_width=True)
+            
+            st.subheader("☁️ Облако слов (Популярные маркеры)")
+            import matplotlib.pyplot as plt
+            from collections import Counter
+            import random
+            import re
+            
+            all_text = " ".join(df["review_text"].dropna().tolist()).lower()
+            words = re.findall(r'\b[a-z]{4,}\b', all_text)
+            
+            stop_words = {'this', 'that', 'with', 'they', 'from', 'about', 'very', 'were', 'your', 'them', 'then', 'some'}
+            filtered_words = [w for w in words if w not in stop_words]
+            
+            word_counts = Counter(filtered_words).most_common(25)
+            
+            if word_counts:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.set_xlim(0, 10)
+                ax.set_ylim(0, 10)
+                ax.axis('off')
+                
+                max_count = word_counts[0][1]
+                
+                for (word, count) in word_counts:
+                    x = random.uniform(1, 8)
+                    y = random.uniform(1, 8)
+                    size = 12 + (count / max_count) * 28
+                    
+                    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#17becf']
+                    ax.text(x, y, word, fontsize=size, ha='center', va='center', 
+                            color=random.choice(colors), alpha=0.85, 
+                            weight='bold' if count > max_count*0.5 else 'normal')
+                
+                st.pyplot(fig)
+            else:
+                st.write("Недостаточно слов для генерации облака.")
     else:
         st.info("Данные для аналитики отсутствуют. Добавьте несколько отзывов!")
 
